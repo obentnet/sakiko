@@ -29,13 +29,28 @@ function stripHtml(value: string) {
   return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function formatBlogDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Shanghai",
+  }).format(date);
+}
+
 function parseFeed(xml: string): BlogFeedItem[] {
   return Array.from(xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)).map((match) => {
     const item = match[1];
     return {
       title: extractTag(item, "title"),
       link: extractTag(item, "link"),
-      pubDate: extractTag(item, "pubDate"),
+      pubDateLabel: formatBlogDate(extractTag(item, "pubDate")),
       description: stripHtml(extractTag(item, "description")),
       categories: extractCategories(item),
     };
@@ -43,9 +58,7 @@ function parseFeed(xml: string): BlogFeedItem[] {
 }
 
 async function getBlogFeed() {
-  const response = await fetch("https://uegee.com/feed", {
-    next: { revalidate: 300 },
-  });
+  const response = await fetch("https://uegee.com/feed");
 
   if (!response.ok) {
     throw new Error(`Feed request failed: ${response.status}`);

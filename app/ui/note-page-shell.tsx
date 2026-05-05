@@ -10,7 +10,7 @@ export type NoteItem = {
   id: number;
   title: string;
   content: string | null;
-  create_time: string;
+  create_time_label: string;
   weather: string | null;
   daily_type: string;
 };
@@ -55,20 +55,6 @@ function getMaskStyle(icon: string) {
   } as const;
 }
 
-function formatDate(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
-
 export default function NotePageShell({ notes }: { notes: NoteItem[] }) {
   const router = useRouter();
   const pushedRef = useRef(false);
@@ -88,12 +74,12 @@ export default function NotePageShell({ notes }: { notes: NoteItem[] }) {
 
     pushedRef.current = true;
     startTransition(() => {
-      router.push("/?return=note", { scroll: false });
+      router.push("/return", { scroll: false });
     });
   }, [router]);
 
   useEffect(() => {
-    router.prefetch("/?return=note");
+    router.prefetch("/return");
   }, [router]);
 
   useEffect(() => {
@@ -224,7 +210,7 @@ export default function NotePageShell({ notes }: { notes: NoteItem[] }) {
                       className="shrink-0 pt-1 text-[13px] font-bold"
                       style={{ color: "var(--theme-surface-muted)" }}
                     >
-                      {formatDate(note.create_time)}
+                      {note.create_time_label}
                     </span>
                   </div>
 

@@ -9,7 +9,7 @@ import { blogFinalIcon, blogFinalLabel, smoothEase } from "./home-transition-con
 export type BlogFeedItem = {
   title: string;
   link: string;
-  pubDate: string;
+  pubDateLabel: string;
   description: string;
   categories: string[];
 };
@@ -54,20 +54,6 @@ function getMaskStyle(icon: string) {
   } as const;
 }
 
-function formatDate(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
-
 export default function BlogPageShell({ posts }: { posts: BlogFeedItem[] }) {
   const router = useRouter();
   const pushedRef = useRef(false);
@@ -87,12 +73,12 @@ export default function BlogPageShell({ posts }: { posts: BlogFeedItem[] }) {
 
     pushedRef.current = true;
     startTransition(() => {
-      router.push("/?return=blog", { scroll: false });
+      router.push("/return", { scroll: false });
     });
   }, [router]);
 
   useEffect(() => {
-    router.prefetch("/?return=blog");
+    router.prefetch("/return");
   }, [router]);
 
   useEffect(() => {
@@ -226,7 +212,7 @@ export default function BlogPageShell({ posts }: { posts: BlogFeedItem[] }) {
                       className="shrink-0 pt-1 text-[13px] font-bold"
                       style={{ color: "var(--theme-surface-muted)" }}
                     >
-                      {formatDate(post.pubDate)}
+                      {post.pubDateLabel}
                     </span>
                   </div>
 
