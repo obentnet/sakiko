@@ -32,6 +32,9 @@ const titleDelay = avatarDelay + avatarDuration;
 const subtitleDelay = titleDelay + 0.15;
 const linksDelay = subtitleDelay + 0.15;
 const socialDelay = linksDelay + 0.3;
+const imageRevealDelay = socialDelay + 0.24 + 0.45 + 0.12;
+const imageRevealDuration = 0.72;
+const imageExitDuration = 0.34;
 const returnAvatarDuration = 0.42;
 const returnTitleDelay = 0.44;
 const returnSubtitleDelay = 0.58;
@@ -40,6 +43,8 @@ const returnSocialDelay = 1.12;
 const friendReturnOffset = -300;
 const friendReturnDuration = 0.62;
 const autoOpenDelay = friendReturnDuration + 0.04;
+const returnImageRevealDelay = returnSocialDelay + 0.45 + 0.12;
+const friendReturnImageRevealDelay = friendReturnDuration + 0.14;
 
 const linkLabelVariants = {
   rest: { scale: 1 },
@@ -183,6 +188,11 @@ export default function HeroIntro({
   socialLinks: SocialLinks;
 }) {
   const isStaticFriendReturn = returningFromDetail && returningFromFriend;
+  const imageEntryDelay = returningFromDetail
+    ? returningFromFriend
+      ? friendReturnImageRevealDelay
+      : returnImageRevealDelay
+    : imageRevealDelay;
   const linkCards = [
     { kind: "blog" as const, label: "博文", icon: "/home.svg" },
     { kind: "note" as const, label: "随笔", icon: "/note.svg" },
@@ -452,6 +462,37 @@ export default function HeroIntro({
               style={{ maxWidth: friendPanelWidth }}
             />
 
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-1/2 z-20 hidden sm:block sm:h-[280px] sm:w-[242px] sm:translate-x-[76px] sm:-translate-y-[544px]"
+              initial={
+                returningFromDetail
+                  ? { opacity: 0, filter: "blur(18px)" }
+                  : { opacity: 0, filter: "blur(18px)" }
+              }
+              animate={
+                cardTransition
+                  ? { opacity: 0, filter: "blur(22px)" }
+                  : { opacity: 1, filter: "blur(0px)" }
+              }
+              transition={{
+                delay: cardTransition ? 0 : imageEntryDelay,
+                duration: cardTransition
+                  ? imageExitDuration
+                  : imageRevealDuration,
+                ease: smoothEase,
+              }}
+            >
+              <Image
+                src="/eromanga.png"
+                alt=""
+                fill
+                sizes="242px"
+                className="object-contain object-top"
+                priority
+              />
+            </motion.div>
+
             <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
               <motion.div
                 initial={
@@ -557,7 +598,7 @@ export default function HeroIntro({
                   return (
                     <div
                       key={item.label}
-                      className="h-[82px] flex-1 sm:h-[112px]"
+                      className="h-[56px] flex-1 sm:h-[112px]"
                     />
                   );
                 }
@@ -569,7 +610,7 @@ export default function HeroIntro({
                     layoutId={`${item.kind}-card-shell`}
                     type="button"
                     onClick={() => startCardTransition(item.kind)}
-                    className="relative flex h-[82px] flex-1 cursor-pointer items-end overflow-hidden px-3 pb-3 text-[18px] font-bold tracking-[-0.03em] sm:h-[112px] sm:px-5 sm:pb-5 sm:text-[24px]"
+                    className="relative flex h-[56px] flex-1 cursor-pointer items-center justify-center overflow-hidden px-2 text-[16px] font-bold tracking-[-0.03em] sm:h-[112px] sm:items-end sm:justify-start sm:px-5 sm:pb-5 sm:text-[24px]"
                     initial={{
                       opacity: isStaticFriendReturn ? 1 : 0,
                       y: isStaticFriendReturn ? 0 : 20,
@@ -596,7 +637,7 @@ export default function HeroIntro({
                   >
                     <motion.span
                       ref={labelRef}
-                      className="relative z-10 origin-left"
+                      className="relative z-10 origin-center sm:origin-left"
                       variants={linkLabelVariants}
                     >
                       {item.label}
@@ -604,7 +645,7 @@ export default function HeroIntro({
                   <motion.span
                     ref={iconRef}
                     aria-hidden="true"
-                    className="absolute right-2 top-2 h-[44px] w-[44px] opacity-85 sm:right-3 sm:top-3 sm:h-[72px] sm:w-[72px]"
+                    className="absolute right-3 top-3 hidden h-[72px] w-[72px] opacity-85 sm:block"
                     variants={linkIconVariants}
                     style={{
                       backgroundColor: "var(--theme-panel-icon)",
