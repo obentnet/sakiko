@@ -11,6 +11,9 @@ export const blogFinalIcon = { left: 24, top: 29, size: 24 };
 export const noteFinalLabel = { left: 60, top: 29 };
 export const noteFinalIcon = { left: 24, top: 29, size: 24 };
 
+export const aboutFinalLabel = { left: 60, top: 29 };
+export const aboutFinalIcon = { left: 24, top: 29, size: 24 };
+
 export const friendFinalLabel = { left: 60, top: 29 };
 export const friendFinalIcon = { left: 24, top: 29, size: 24 };
 

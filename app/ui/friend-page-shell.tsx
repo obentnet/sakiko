@@ -76,8 +76,14 @@ const backFillDuration = 0.42;
 const leftPanelEnterOffset = 300;
 const homeLinkRowWidth = 560;
 const homeLinkGap = 16;
-const homeLinkCardWidth = (homeLinkRowWidth - homeLinkGap * 2) / 3;
-const homeLinkCenterOffset = (homeLinkRowWidth - (homeLinkCardWidth * 2 + homeLinkGap)) / 2;
+const homeLinkCardCount = 4;
+const visibleHomeLinkCount = 3;
+const homeLinkCardWidth =
+  (homeLinkRowWidth - homeLinkGap * (homeLinkCardCount - 1)) / homeLinkCardCount;
+const homeLinkCenterOffset =
+  (homeLinkRowWidth -
+    (homeLinkCardWidth * visibleHomeLinkCount + homeLinkGap * (visibleHomeLinkCount - 1))) /
+  2;
 
 const listVariants = {
   hidden: {},
@@ -200,8 +206,10 @@ export default function FriendPageShell({
     router.prefetch("/return/friend");
     router.prefetch("/return/friend/blog");
     router.prefetch("/return/friend/note");
+    router.prefetch("/return/friend/about");
     router.prefetch("/blog");
     router.prefetch("/note");
+    router.prefetch("/about");
   }, [router]);
 
   useEffect(() => {
@@ -305,6 +313,7 @@ export default function FriendPageShell({
   const linkCards = [
     { label: "博文", icon: "/home.svg", href: "/blog" },
     { label: "随笔", icon: "/note.svg", href: "/note" },
+    { label: "关于", icon: "/about.svg", href: "/about" },
     { label: "朋友", icon: "/friends.svg", href: "/friend" },
   ];
   const visibleLinkCards = linkCards.filter((item) => item.label !== "朋友");
@@ -393,7 +402,11 @@ export default function FriendPageShell({
                   type="button"
                   onClick={() =>
                     startCloseTransition(
-                      item.href === "/blog" ? "/return/friend/blog" : "/return/friend/note",
+                      item.href === "/blog"
+                        ? "/return/friend/blog"
+                        : item.href === "/note"
+                          ? "/return/friend/note"
+                          : "/return/friend/about",
                     )
                   }
                   className="absolute top-0 flex h-[112px] cursor-pointer items-end overflow-hidden px-5 pb-5 text-[24px] font-bold tracking-[-0.03em]"
@@ -446,7 +459,7 @@ export default function FriendPageShell({
               ref={friendCardRef}
               className="absolute top-0 flex h-[112px] items-end overflow-hidden px-5 pb-5 text-[24px] font-bold tracking-[-0.03em]"
               style={{
-                left: homeLinkCardWidth * 2 + homeLinkGap * 2,
+                left: homeLinkCardWidth * 3 + homeLinkGap * 3,
                 width: homeLinkCardWidth,
                 borderRadius: panelRadius,
                 backgroundColor: "var(--theme-panel-bg)",

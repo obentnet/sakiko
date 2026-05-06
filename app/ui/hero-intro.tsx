@@ -5,6 +5,8 @@ import Image from "next/image";
 import { LayoutGroup, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
+  aboutFinalIcon,
+  aboutFinalLabel,
   blogExpandDuration,
   blogFinalIcon,
   blogFinalLabel,
@@ -47,6 +49,7 @@ const returnImageRevealDelay = returnSocialDelay + 0.45 + 0.12;
 const friendReturnImageRevealDelay = friendReturnDuration + 0.14;
 const introAssetSources = ["/head.jpg", "/eromanga.png"];
 const introBlackoutFadeDuration = 0.42;
+const aboutTransitionDuration = 0.74;
 
 const linkLabelVariants = {
   rest: { scale: 1 },
@@ -90,7 +93,7 @@ const socialLabelVariants = {
 };
 
 type CardTransitionStage = "idle" | "move" | "expand" | "settle";
-type TransitionCardKind = "blog" | "note" | "friend";
+type TransitionCardKind = "blog" | "note" | "about" | "friend";
 
 type SocialLinks = {
   bilibili: string;
@@ -133,6 +136,55 @@ type CardTransitionSnapshot = {
     left: number;
     top: number;
     size: number;
+  };
+};
+
+type AboutTransitionSnapshot = {
+  route: string;
+  panel: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+    targetLeft: number;
+    targetTop: number;
+    targetWidth: number;
+    targetHeight: number;
+  };
+  avatar: {
+    left: number;
+    top: number;
+    size: number;
+    targetLeft: number;
+    targetTop: number;
+    targetSize: number;
+  };
+  card: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+    targetLeft: number;
+    targetTop: number;
+    targetWidth: number;
+    targetHeight: number;
+  };
+  label: {
+    left: number;
+    top: number;
+    fontSize: number;
+    targetLeft: number;
+    targetTop: number;
+    targetFontSize: number;
+  };
+  icon: {
+    left: number;
+    top: number;
+    size: number;
+    opacity: number;
+    targetLeft: number;
+    targetTop: number;
+    targetSize: number;
   };
 };
 
@@ -199,6 +251,14 @@ function getCardConfig(kind: TransitionCardKind) {
         finalLabel: noteFinalLabel,
         finalIcon: noteFinalIcon,
       };
+    case "about":
+      return {
+        labelText: "关于",
+        iconPath: "/about.svg",
+        route: "/about",
+        finalLabel: aboutFinalLabel,
+        finalIcon: aboutFinalIcon,
+      };
     case "friend":
       return {
         labelText: "朋友",
@@ -231,6 +291,7 @@ export default function HeroIntro({
   const linkCards = [
     { kind: "blog" as const, label: "博文", icon: "/home.svg" },
     { kind: "note" as const, label: "随笔", icon: "/note.svg" },
+    { kind: "about" as const, label: "关于", icon: "/about.svg" },
     { kind: "friend" as const, label: "朋友", icon: "/friends.svg" },
   ];
 
@@ -245,12 +306,19 @@ export default function HeroIntro({
   const frameRef = useRef<HTMLDivElement | null>(null);
   const backgroundCardRef = useRef<HTMLDivElement | null>(null);
   const friendTargetRef = useRef<HTMLDivElement | null>(null);
+  const aboutPanelTargetRef = useRef<HTMLDivElement | null>(null);
+  const aboutAvatarTargetRef = useRef<HTMLDivElement | null>(null);
+  const aboutCardTargetRef = useRef<HTMLDivElement | null>(null);
+  const avatarShellRef = useRef<HTMLDivElement | null>(null);
   const blogCardRef = useRef<HTMLButtonElement | null>(null);
   const blogLabelRef = useRef<HTMLSpanElement | null>(null);
   const blogIconRef = useRef<HTMLSpanElement | null>(null);
   const noteCardRef = useRef<HTMLButtonElement | null>(null);
   const noteLabelRef = useRef<HTMLSpanElement | null>(null);
   const noteIconRef = useRef<HTMLSpanElement | null>(null);
+  const aboutCardRef = useRef<HTMLButtonElement | null>(null);
+  const aboutLabelRef = useRef<HTMLSpanElement | null>(null);
+  const aboutIconRef = useRef<HTMLSpanElement | null>(null);
   const friendCardRef = useRef<HTMLButtonElement | null>(null);
   const friendLabelRef = useRef<HTMLSpanElement | null>(null);
   const friendIconRef = useRef<HTMLSpanElement | null>(null);
@@ -261,6 +329,10 @@ export default function HeroIntro({
   const [cardStage, setCardStage] = useState<CardTransitionStage>("idle");
   const [cardTransition, setCardTransition] =
     useState<CardTransitionSnapshot | null>(null);
+  const [aboutTransition, setAboutTransition] =
+    useState<AboutTransitionSnapshot | null>(null);
+  const [aboutSourceHidden, setAboutSourceHidden] = useState(false);
+  const isAboutTransitioning = aboutTransition !== null;
 
   useEffect(() => {
     if (!shouldGateIntro) {
@@ -301,6 +373,7 @@ export default function HeroIntro({
 
     router.prefetch("/blog");
     router.prefetch("/note");
+    router.prefetch("/about");
     router.prefetch("/friend");
   }, [isIntroReady, router]);
 
@@ -313,7 +386,13 @@ export default function HeroIntro({
       return;
     }
 
-    router.prefetch(autoOpenKind === "blog" ? "/blog" : "/note");
+    router.prefetch(
+      autoOpenKind === "blog"
+        ? "/blog"
+        : autoOpenKind === "note"
+          ? "/note"
+          : "/about",
+    );
   }, [autoOpenKind, isIntroReady, router]);
 
   const finishCardTransition = useCallback(() => {
@@ -327,9 +406,46 @@ export default function HeroIntro({
     });
   }, [cardTransition, router]);
 
+  const finishAboutTransition = useCallback(() => {
+    if (pushedRef.current || !aboutTransition) {
+      return;
+    }
+
+    pushedRef.current = true;
+    startTransition(() => {
+      router.push(aboutTransition.route, { scroll: false });
+    });
+  }, [aboutTransition, router]);
+
   useEffect(() => {
     if (!isIntroReady) {
       return;
+    }
+
+    if (aboutTransition) {
+      const frame = window.requestAnimationFrame(() => {
+        setAboutSourceHidden(true);
+      });
+
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    setAboutSourceHidden(false);
+
+    return;
+  }, [aboutTransition, isIntroReady]);
+
+  useEffect(() => {
+    if (!isIntroReady) {
+      return;
+    }
+
+    if (aboutTransition) {
+      const timer = window.setTimeout(() => {
+        finishAboutTransition();
+      }, aboutTransitionDuration * 1000);
+
+      return () => window.clearTimeout(timer);
     }
 
     if (cardStage === "idle") {
@@ -359,7 +475,7 @@ export default function HeroIntro({
 
       return () => window.clearTimeout(timer);
     }
-  }, [cardStage, finishCardTransition, isIntroReady]);
+  }, [aboutTransition, cardStage, finishAboutTransition, finishCardTransition, isIntroReady]);
 
   const getCardElements = (kind: TransitionCardKind) => {
     switch (kind) {
@@ -374,6 +490,12 @@ export default function HeroIntro({
           cardRef: noteCardRef.current,
           labelRef: noteLabelRef.current,
           iconRef: noteIconRef.current,
+        };
+      case "about":
+        return {
+          cardRef: aboutCardRef.current,
+          labelRef: aboutLabelRef.current,
+          iconRef: aboutIconRef.current,
         };
       case "friend":
         return {
@@ -398,6 +520,12 @@ export default function HeroIntro({
           labelRef: noteLabelRef,
           iconRef: noteIconRef,
         };
+      case "about":
+        return {
+          cardRef: aboutCardRef,
+          labelRef: aboutLabelRef,
+          iconRef: aboutIconRef,
+        };
       case "friend":
         return {
           cardRef: friendCardRef,
@@ -408,6 +536,103 @@ export default function HeroIntro({
   };
 
   const startCardTransition = (kind: TransitionCardKind) => {
+    if (kind === "about") {
+      if (
+        aboutTransition ||
+        cardTransition ||
+        !frameRef.current ||
+        !backgroundCardRef.current ||
+        !avatarShellRef.current ||
+        !aboutCardRef.current ||
+        !aboutLabelRef.current ||
+        !aboutIconRef.current ||
+        !aboutPanelTargetRef.current ||
+        !aboutAvatarTargetRef.current ||
+        !aboutCardTargetRef.current
+      ) {
+        return;
+      }
+
+      const frameRect = frameRef.current.getBoundingClientRect();
+      const backgroundRect = backgroundCardRef.current.getBoundingClientRect();
+      const avatarRect = avatarShellRef.current.getBoundingClientRect();
+      const cardRect = aboutCardRef.current.getBoundingClientRect();
+      const labelRect = aboutLabelRef.current.getBoundingClientRect();
+      const iconRect = aboutIconRef.current.getBoundingClientRect();
+      const panelTargetRect = aboutPanelTargetRef.current.getBoundingClientRect();
+      const avatarTargetRect = aboutAvatarTargetRef.current.getBoundingClientRect();
+      const cardTargetRect = aboutCardTargetRef.current.getBoundingClientRect();
+      const sourceLabelFontSize = Number.parseFloat(
+        window.getComputedStyle(aboutLabelRef.current).fontSize,
+      );
+      const isDesktopAboutTarget = cardTargetRect.width >= 180;
+      const targetLabel = isDesktopAboutTarget
+        ? { left: 50, top: 17, fontSize: 20 }
+        : { left: 46, top: 15, fontSize: 18 };
+      const targetIcon = isDesktopAboutTarget
+        ? { left: 18, top: 21, size: 20 }
+        : { left: 16, top: 19, size: 18 };
+      const hasVisibleSourceIcon = iconRect.width > 0 && iconRect.height > 0;
+      const sourceIconSize = hasVisibleSourceIcon ? iconRect.width : 18;
+      const sourceIconLeft = hasVisibleSourceIcon
+        ? iconRect.left - cardRect.left
+        : cardRect.width / 2 - sourceIconSize / 2;
+      const sourceIconTop = hasVisibleSourceIcon
+        ? iconRect.top - cardRect.top
+        : cardRect.height / 2 - sourceIconSize / 2;
+
+      pushedRef.current = false;
+      setAboutTransition({
+        route: "/about",
+        panel: {
+          left: backgroundRect.left - frameRect.left,
+          top: backgroundRect.top - frameRect.top,
+          width: backgroundRect.width,
+          height: backgroundRect.height,
+          targetLeft: panelTargetRect.left - frameRect.left,
+          targetTop: panelTargetRect.top - frameRect.top,
+          targetWidth: panelTargetRect.width,
+          targetHeight: panelTargetRect.height,
+        },
+        avatar: {
+          left: avatarRect.left - frameRect.left,
+          top: avatarRect.top - frameRect.top,
+          size: avatarRect.width,
+          targetLeft: avatarTargetRect.left - frameRect.left,
+          targetTop: avatarTargetRect.top - frameRect.top,
+          targetSize: avatarTargetRect.width,
+        },
+        card: {
+          left: cardRect.left - frameRect.left,
+          top: cardRect.top - frameRect.top,
+          width: cardRect.width,
+          height: cardRect.height,
+          targetLeft: cardTargetRect.left - frameRect.left,
+          targetTop: cardTargetRect.top - frameRect.top,
+          targetWidth: cardTargetRect.width,
+          targetHeight: cardTargetRect.height,
+        },
+        label: {
+          left: labelRect.left - cardRect.left,
+          top: labelRect.top - cardRect.top,
+          fontSize: Number.isFinite(sourceLabelFontSize) ? sourceLabelFontSize : 16,
+          targetLeft: targetLabel.left,
+          targetTop: targetLabel.top,
+          targetFontSize: targetLabel.fontSize,
+        },
+        icon: {
+          left: sourceIconLeft,
+          top: sourceIconTop,
+          size: sourceIconSize,
+          opacity: hasVisibleSourceIcon ? 0.85 : 0,
+          targetLeft: targetIcon.left,
+          targetTop: targetIcon.top,
+          targetSize: targetIcon.size,
+        },
+      });
+      return;
+    }
+
     const { cardRef, labelRef, iconRef } = getCardElements(kind);
     const targetElement =
       kind === "friend" ? friendTargetRef.current : backgroundCardRef.current;
@@ -461,8 +686,8 @@ export default function HeroIntro({
     } satisfies CardTransitionSnapshot;
 
     pushedRef.current = false;
-    setCardTransition(snapshot);
-    setCardStage("move");
+      setCardTransition(snapshot);
+      setCardStage("move");
   };
 
   useEffect(() => {
@@ -542,12 +767,18 @@ export default function HeroIntro({
                   ? { scale: 1, opacity: 1, x: 0 }
                   : { scale: 0.18, opacity: 0 }
               }
-              animate={{ scale: 1, opacity: 1, x: 0 }}
+              animate={
+                isAboutTransitioning
+                  ? { scale: 1, opacity: 0, x: 0, y: 0 }
+                  : { scale: 1, opacity: 1, x: 0, y: 0 }
+              }
               transition={{
-                delay: returningFromDetail ? 0 : cardDelay,
-                duration: returningFromDetail
-                  ? 0
-                  : cardDuration,
+                delay: isAboutTransitioning ? 0 : returningFromDetail ? 0 : cardDelay,
+                duration: isAboutTransitioning
+                  ? aboutTransitionDuration
+                  : returningFromDetail
+                    ? 0
+                    : cardDuration,
                 ease: smoothEase,
               }}
               style={{
@@ -566,6 +797,26 @@ export default function HeroIntro({
               style={{ maxWidth: friendPanelWidth }}
             />
 
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[1120px] w-full max-w-[760px] -translate-x-1/2 -translate-y-1/2 opacity-0"
+            >
+              <div className="absolute left-1/2 top-1/2 h-[980px] w-full max-w-[680px] -translate-x-1/2 -translate-y-1/2 rounded-[44px]">
+                <div
+                  ref={aboutPanelTargetRef}
+                  className="absolute inset-0"
+                />
+                <div
+                  ref={aboutCardTargetRef}
+                  className="absolute left-6 top-6 h-[56px] w-[168px] sm:left-8 sm:top-8 sm:h-[64px] sm:w-[188px]"
+                />
+                <div
+                  ref={aboutAvatarTargetRef}
+                  className="absolute left-1/2 top-[102px] h-[152px] w-[152px] -translate-x-1/2"
+                />
+              </div>
+            </div>
+
             <motion.div
               aria-hidden="true"
               className="pointer-events-none absolute left-1/2 top-1/2 z-20 hidden sm:block sm:h-[280px] sm:w-[242px] sm:translate-x-[76px] sm:-translate-y-[544px]"
@@ -575,13 +826,13 @@ export default function HeroIntro({
                   : { opacity: 0, filter: "blur(18px)" }
               }
               animate={
-                cardTransition
+                cardTransition || isAboutTransitioning
                   ? { opacity: 0, filter: "blur(22px)" }
                   : { opacity: 1, filter: "blur(0px)" }
               }
               transition={{
-                delay: cardTransition ? 0 : imageEntryDelay,
-                duration: cardTransition
+                delay: cardTransition || isAboutTransitioning ? 0 : imageEntryDelay,
+                duration: cardTransition || isAboutTransitioning
                   ? imageExitDuration
                   : imageRevealDuration,
                 ease: smoothEase,
@@ -597,7 +848,10 @@ export default function HeroIntro({
               />
             </motion.div>
 
-            <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+            <div
+              ref={avatarShellRef}
+              className={`absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 ${isAboutTransitioning && aboutSourceHidden ? "opacity-0" : ""}`}
+            >
               <motion.div
                 initial={
                   returningFromDetail
@@ -640,14 +894,16 @@ export default function HeroIntro({
                 y: isStaticFriendReturn ? 0 : 10,
                 x: 0,
               }}
-              animate={{ opacity: 1, y: 0, x: 0 }}
+              animate={isAboutTransitioning ? { opacity: 0, y: 0, x: 0 } : { opacity: 1, y: 0, x: 0 }}
               transition={{
-                delay: returningFromDetail
-                  ? isStaticFriendReturn
-                    ? 0
-                    : returnTitleDelay
-                  : titleDelay,
-                duration: isStaticFriendReturn ? 0 : 0.4,
+                delay: isAboutTransitioning
+                  ? 0
+                  : returningFromDetail
+                    ? isStaticFriendReturn
+                      ? 0
+                      : returnTitleDelay
+                    : titleDelay,
+                duration: isAboutTransitioning ? aboutTransitionDuration : isStaticFriendReturn ? 0 : 0.4,
                 ease: "easeOut",
               }}
               style={{
@@ -670,14 +926,16 @@ export default function HeroIntro({
                 y: isStaticFriendReturn ? 0 : 10,
                 x: 0,
               }}
-              animate={{ opacity: 1, y: 0, x: 0 }}
+              animate={isAboutTransitioning ? { opacity: 0, y: 0, x: 0 } : { opacity: 1, y: 0, x: 0 }}
               transition={{
-                delay: returningFromDetail
-                  ? isStaticFriendReturn
-                    ? 0
-                    : returnSubtitleDelay
-                  : subtitleDelay,
-                duration: isStaticFriendReturn ? 0 : 0.42,
+                delay: isAboutTransitioning
+                  ? 0
+                  : returningFromDetail
+                    ? isStaticFriendReturn
+                      ? 0
+                      : returnSubtitleDelay
+                    : subtitleDelay,
+                duration: isAboutTransitioning ? aboutTransitionDuration : isStaticFriendReturn ? 0 : 0.42,
                 ease: "easeOut",
               }}
               style={{
@@ -689,20 +947,20 @@ export default function HeroIntro({
             </motion.p>
 
             <div
-              className="absolute left-1/2 z-10 flex w-full max-w-[560px] -translate-x-1/2 gap-2 sm:gap-4"
+              className="absolute left-1/2 z-10 grid w-full max-w-[560px] -translate-x-1/2 grid-cols-2 gap-2 sm:flex sm:gap-4"
               style={{
                 top: `calc(50% - ${avatarLift}px + ${avatarSize / 2 + 176}px)`,
               }}
             >
               {linkCards.map((item, index) => {
-                const isActive = cardTransition?.kind === item.kind;
+                const isActive = cardTransition?.kind === item.kind || (isAboutTransitioning && item.kind === "about");
                 const { cardRef, labelRef, iconRef } = getCardRefHandles(item.kind);
 
-                if (isActive) {
+                if (isActive && !(isAboutTransitioning && item.kind === "about")) {
                   return (
                     <div
                       key={item.label}
-                      className="h-[56px] flex-1 sm:h-[112px]"
+                      className="h-[56px] min-w-0 sm:h-[112px] sm:flex-1"
                     />
                   );
                 }
@@ -714,23 +972,30 @@ export default function HeroIntro({
                     layoutId={`${item.kind}-card-shell`}
                     type="button"
                     onClick={() => startCardTransition(item.kind)}
-                    className="relative flex h-[56px] flex-1 cursor-pointer items-center justify-center overflow-hidden px-2 text-[16px] font-bold tracking-[-0.03em] sm:h-[112px] sm:items-end sm:justify-start sm:px-5 sm:pb-5 sm:text-[24px]"
+                    className="relative flex h-[56px] min-w-0 cursor-pointer items-center justify-center overflow-hidden px-2 text-[16px] font-bold tracking-[-0.03em] sm:h-[112px] sm:flex-1 sm:items-end sm:justify-start sm:px-5 sm:pb-5 sm:text-[24px]"
                     initial={{
                       opacity: isStaticFriendReturn ? 1 : 0,
                       y: isStaticFriendReturn ? 0 : 20,
                       x: 0,
                     }}
-                    animate={{ opacity: 1, y: 0, x: 0 }}
+                    animate={
+                      isAboutTransitioning
+                        ? item.kind === "about"
+                          ? { opacity: aboutSourceHidden ? 0 : 1, y: 0, x: 0 }
+                          : { opacity: 0, y: 0, x: 0 }
+                        : { opacity: 1, y: 0, x: 0 }
+                    }
                     whileHover="hover"
                     transition={{
-                      delay:
-                        ((returningFromDetail && !isStaticFriendReturn)
+                      delay: isAboutTransitioning
+                        ? 0
+                        : ((returningFromDetail && !isStaticFriendReturn)
                           ? returnLinksDelay
                           : returningFromDetail
                             ? 0
                             : linksDelay) +
                         index * 0.08,
-                      duration: isStaticFriendReturn ? 0 : 0.45,
+                      duration: isAboutTransitioning ? aboutTransitionDuration : isStaticFriendReturn ? 0 : 0.45,
                       ease: smoothEase,
                     }}
                     style={{
@@ -776,16 +1041,17 @@ export default function HeroIntro({
                     y: isStaticFriendReturn ? 0 : 24,
                     x: 0,
                   }}
-                  animate={{ opacity: 1, y: 0, x: 0 }}
+                    animate={isAboutTransitioning ? { opacity: 0, y: 0, x: 0 } : { opacity: 1, y: 0, x: 0 }}
                   transition={{
-                    delay:
-                      ((returningFromDetail && !isStaticFriendReturn)
+                    delay: isAboutTransitioning
+                      ? 0
+                      : ((returningFromDetail && !isStaticFriendReturn)
                         ? returnSocialDelay
                         : returningFromDetail
                           ? 0
                           : socialDelay) +
                       index * 0.08,
-                    duration: isStaticFriendReturn ? 0 : 0.45,
+                    duration: isAboutTransitioning ? aboutTransitionDuration : isStaticFriendReturn ? 0 : 0.45,
                     ease: smoothEase,
                   }}
                 >
@@ -916,6 +1182,135 @@ export default function HeroIntro({
                 }}
               />
             </motion.div>
+          ) : null}
+
+          {aboutTransition ? (
+            <>
+              <motion.div
+                className="absolute z-30 overflow-hidden rounded-[44px]"
+                initial={{
+                  left: aboutTransition.panel.left,
+                  top: aboutTransition.panel.top,
+                  width: aboutTransition.panel.width,
+                  height: aboutTransition.panel.height,
+                }}
+                animate={{
+                  left: aboutTransition.panel.targetLeft,
+                  top: aboutTransition.panel.targetTop,
+                  width: aboutTransition.panel.targetWidth,
+                  height: aboutTransition.panel.targetHeight,
+                }}
+                transition={{
+                  duration: aboutTransitionDuration,
+                  ease: smoothEase,
+                }}
+                style={{
+                  backgroundColor: "var(--theme-primary)",
+                  boxShadow: "0 30px 90px var(--theme-primary-shadow)",
+                }}
+              />
+
+              <motion.div
+                className="absolute z-40 overflow-hidden rounded-full border-4 border-white shadow-[0_24px_60px_rgba(0,0,0,0.16)]"
+                initial={{
+                  left: aboutTransition.avatar.left,
+                  top: aboutTransition.avatar.top,
+                  width: aboutTransition.avatar.size,
+                  height: aboutTransition.avatar.size,
+                }}
+                animate={{
+                  left: aboutTransition.avatar.targetLeft,
+                  top: aboutTransition.avatar.targetTop,
+                  width: aboutTransition.avatar.targetSize,
+                  height: aboutTransition.avatar.targetSize,
+                }}
+                transition={{
+                  duration: aboutTransitionDuration,
+                  ease: smoothEase,
+                }}
+              >
+                <Image
+                  src="/head.jpg"
+                  alt="Avatar"
+                  fill
+                  sizes={`${avatarSize}px`}
+                  className="object-cover"
+                />
+              </motion.div>
+
+              <motion.div
+                className="absolute z-40 overflow-hidden"
+                initial={{
+                  left: aboutTransition.card.left,
+                  top: aboutTransition.card.top,
+                  width: aboutTransition.card.width,
+                  height: aboutTransition.card.height,
+                  borderRadius: panelRadius,
+                }}
+                animate={{
+                  left: aboutTransition.card.targetLeft,
+                  top: aboutTransition.card.targetTop,
+                  width: aboutTransition.card.targetWidth,
+                  height: aboutTransition.card.targetHeight,
+                  borderRadius: panelRadius,
+                }}
+                transition={{
+                  duration: aboutTransitionDuration,
+                  ease: smoothEase,
+                }}
+                style={{
+                  backgroundColor: "var(--theme-panel-bg)",
+                  boxShadow: "0 30px 90px var(--theme-panel-shadow)",
+                }}
+              >
+                <motion.span
+                  className="absolute z-10 font-bold tracking-[-0.03em]"
+                  initial={{
+                    left: aboutTransition.label.left,
+                    top: aboutTransition.label.top,
+                    fontSize: aboutTransition.label.fontSize,
+                  }}
+                  animate={{
+                    left: aboutTransition.label.targetLeft,
+                    top: aboutTransition.label.targetTop,
+                    fontSize: aboutTransition.label.targetFontSize,
+                  }}
+                  transition={{
+                    duration: aboutTransitionDuration,
+                    ease: smoothEase,
+                  }}
+                  style={{ color: "var(--theme-panel-text)" }}
+                >
+                  关于
+                </motion.span>
+                <motion.span
+                  aria-hidden="true"
+                  className="absolute"
+                  initial={{
+                    left: aboutTransition.icon.left,
+                    top: aboutTransition.icon.top,
+                    width: aboutTransition.icon.size,
+                    height: aboutTransition.icon.size,
+                    opacity: aboutTransition.icon.opacity,
+                  }}
+                  animate={{
+                    left: aboutTransition.icon.targetLeft,
+                    top: aboutTransition.icon.targetTop,
+                    width: aboutTransition.icon.targetSize,
+                    height: aboutTransition.icon.targetSize,
+                    opacity: 0.85,
+                  }}
+                  transition={{
+                    duration: aboutTransitionDuration,
+                    ease: smoothEase,
+                  }}
+                  style={{
+                    backgroundColor: "var(--theme-panel-icon)",
+                    ...getMaskStyle("/about.svg"),
+                  }}
+                />
+              </motion.div>
+            </>
           ) : null}
             </>
           )}
