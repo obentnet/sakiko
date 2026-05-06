@@ -45,6 +45,8 @@ const friendReturnDuration = 0.62;
 const autoOpenDelay = friendReturnDuration + 0.04;
 const returnImageRevealDelay = returnSocialDelay + 0.45 + 0.12;
 const friendReturnImageRevealDelay = friendReturnDuration + 0.14;
+const introAssetSources = ["/head.jpg", "/eromanga.png"];
+const introBlackoutFadeDuration = 0.42;
 
 const linkLabelVariants = {
   rest: { scale: 1 },
@@ -147,6 +149,38 @@ function getMaskStyle(icon: string) {
   } as const;
 }
 
+function waitForWindowLoad() {
+  if (document.readyState === "complete") {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>((resolve) => {
+    window.addEventListener("load", () => resolve(), { once: true });
+  });
+}
+
+function waitForFontsReady() {
+  if (!("fonts" in document)) {
+    return Promise.resolve();
+  }
+
+  return document.fonts.ready.then(() => undefined);
+}
+
+function preloadImage(src: string) {
+  return new Promise<void>((resolve) => {
+    const image = new window.Image();
+
+    image.onload = () => resolve();
+    image.onerror = () => resolve();
+    image.src = src;
+
+    if (image.complete) {
+      resolve();
+    }
+  });
+}
+
 function getCardConfig(kind: TransitionCardKind) {
   switch (kind) {
     case "blog":
@@ -188,6 +222,7 @@ export default function HeroIntro({
   socialLinks: SocialLinks;
 }) {
   const isStaticFriendReturn = returningFromDetail && returningFromFriend;
+  const shouldGateIntro = !returningFromDetail;
   const imageEntryDelay = returningFromDetail
     ? returningFromFriend
       ? friendReturnImageRevealDelay
@@ -221,23 +256,65 @@ export default function HeroIntro({
   const friendIconRef = useRef<HTMLSpanElement | null>(null);
   const pushedRef = useRef(false);
   const autoOpenTriggeredRef = useRef(false);
+  const [isIntroReady, setIsIntroReady] = useState(!shouldGateIntro);
+  const [isBlackoutVisible, setIsBlackoutVisible] = useState(shouldGateIntro);
   const [cardStage, setCardStage] = useState<CardTransitionStage>("idle");
   const [cardTransition, setCardTransition] =
     useState<CardTransitionSnapshot | null>(null);
 
   useEffect(() => {
+    if (!shouldGateIntro) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const prepareIntro = async () => {
+      await Promise.all([
+        waitForWindowLoad(),
+        waitForFontsReady(),
+        Promise.allSettled(introAssetSources.map((src) => preloadImage(src))),
+      ]);
+
+      if (cancelled) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        if (!cancelled) {
+          setIsIntroReady(true);
+        }
+      });
+    };
+
+    prepareIntro();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [shouldGateIntro]);
+
+  useEffect(() => {
+    if (!isIntroReady) {
+      return;
+    }
+
     router.prefetch("/blog");
     router.prefetch("/note");
     router.prefetch("/friend");
-  }, [router]);
+  }, [isIntroReady, router]);
 
   useEffect(() => {
+    if (!isIntroReady) {
+      return;
+    }
+
     if (!autoOpenKind) {
       return;
     }
 
     router.prefetch(autoOpenKind === "blog" ? "/blog" : "/note");
-  }, [router]);
+  }, [autoOpenKind, isIntroReady, router]);
 
   const finishCardTransition = useCallback(() => {
     if (pushedRef.current || !cardTransition) {
@@ -251,6 +328,10 @@ export default function HeroIntro({
   }, [cardTransition, router]);
 
   useEffect(() => {
+    if (!isIntroReady) {
+      return;
+    }
+
     if (cardStage === "idle") {
       return;
     }
@@ -278,7 +359,7 @@ export default function HeroIntro({
 
       return () => window.clearTimeout(timer);
     }
-  }, [cardStage, finishCardTransition]);
+  }, [cardStage, finishCardTransition, isIntroReady]);
 
   const getCardElements = (kind: TransitionCardKind) => {
     switch (kind) {
@@ -385,6 +466,10 @@ export default function HeroIntro({
   };
 
   useEffect(() => {
+    if (!isIntroReady) {
+      return;
+    }
+
     if (!autoOpenKind || autoOpenTriggeredRef.current) {
       return;
     }
@@ -395,16 +480,35 @@ export default function HeroIntro({
     }, autoOpenDelay * 1000);
 
     return () => window.clearTimeout(timer);
-  }, [autoOpenKind]);
+  }, [autoOpenKind, isIntroReady]);
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
+      {!isIntroReady || isBlackoutVisible ? (
+        <motion.div
+          aria-hidden="true"
+          className="absolute inset-0 z-50 bg-black"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: isIntroReady ? 0 : 1 }}
+          transition={{
+            duration: introBlackoutFadeDuration,
+            ease: smoothEase,
+          }}
+          onAnimationComplete={() => {
+            if (isIntroReady) {
+              setIsBlackoutVisible(false);
+            }
+          }}
+        />
+      ) : null}
       <LayoutGroup>
         <div
           ref={frameRef}
           className="relative h-[820px] w-full max-w-[1120px]"
           style={{ maxWidth: friendFrameWidth }}
         >
+          {!isIntroReady ? null : (
+            <>
           <motion.div
             className="absolute inset-0"
             initial={{
@@ -813,6 +917,9 @@ export default function HeroIntro({
               />
             </motion.div>
           ) : null}
+            </>
+          )}
+
         </div>
       </LayoutGroup>
     </main>
