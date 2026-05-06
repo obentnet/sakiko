@@ -7,6 +7,8 @@ type Ornament = {
   svg: React.ReactNode;
 };
 
+const ornamentScale = 2;
+
 const ornaments: Ornament[] = [
   {
     left: "6%",
@@ -221,7 +223,7 @@ export default function BackgroundOrnaments() {
             width: ornament.size,
             height: ornament.size,
             color: ornament.color,
-            transform: `rotate(${ornament.rotation}deg)`,
+            transform: `rotate(${ornament.rotation}deg) scale(${ornamentScale})`,
           }}
         >
           {ornament.svg}

@@ -1,3 +1,4 @@
+import { siteConfig } from "../site-config";
 import NotePageShell, { type NoteItem } from "../ui/note-page-shell";
 
 type DailyResponse = {
@@ -22,7 +23,7 @@ function formatNoteDate(value: string) {
 }
 
 async function getNotes() {
-  const response = await fetch("https://nehex-console.uegee.com/daily");
+  const response = await fetch(siteConfig.noteApiUrl);
 
   if (!response.ok) {
     throw new Error(`Daily request failed: ${response.status}`);

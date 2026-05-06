@@ -1,3 +1,4 @@
+import { siteConfig } from "../site-config";
 import BlogPageShell, { type BlogFeedItem } from "../ui/blog-page-shell";
 
 function decodeXml(value: string) {
@@ -58,7 +59,7 @@ function parseFeed(xml: string): BlogFeedItem[] {
 }
 
 async function getBlogFeed() {
-  const response = await fetch("https://uegee.com/feed");
+  const response = await fetch(siteConfig.blogFeedUrl);
 
   if (!response.ok) {
     throw new Error(`Feed request failed: ${response.status}`);
