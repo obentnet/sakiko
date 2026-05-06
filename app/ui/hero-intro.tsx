@@ -4,7 +4,6 @@ import { startTransition, useCallback, useEffect, useRef, useState } from "react
 import Image from "next/image";
 import { LayoutGroup, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import BackgroundOrnaments from "./background-ornaments";
 import {
   blogExpandDuration,
   blogFinalIcon,
@@ -18,6 +17,7 @@ import {
   friendPanelWidth,
   noteFinalIcon,
   noteFinalLabel,
+  panelRadius,
   smoothEase,
 } from "./home-transition-constants";
 
@@ -388,11 +388,7 @@ export default function HeroIntro({
   }, [autoOpenKind]);
 
   return (
-    <main
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-6"
-      style={{ backgroundColor: "var(--theme-page-bg)" }}
-    >
-      <BackgroundOrnaments />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
       <LayoutGroup>
         <div
           ref={frameRef}
@@ -426,7 +422,7 @@ export default function HeroIntro({
             <motion.div
               ref={backgroundCardRef}
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 z-0 w-full max-w-[680px] -translate-x-1/2 -translate-y-1/2 rounded-[44px]"
+              className="absolute left-1/2 top-1/2 z-0 w-full max-w-[680px] -translate-x-1/2 -translate-y-1/2"
               initial={
                 returningFromDetail
                   ? { scale: 1, opacity: 1, x: 0 }
@@ -442,6 +438,7 @@ export default function HeroIntro({
               }}
               style={{
                 height: cardHeight,
+                borderRadius: panelRadius,
                 transformOrigin: "center center",
                 backgroundColor: "var(--theme-primary)",
                 boxShadow: "0 30px 90px var(--theme-primary-shadow)",
@@ -572,7 +569,7 @@ export default function HeroIntro({
                     layoutId={`${item.kind}-card-shell`}
                     type="button"
                     onClick={() => startCardTransition(item.kind)}
-                    className="relative flex h-[82px] flex-1 cursor-pointer items-end overflow-hidden rounded-[20px] px-3 pb-3 text-[18px] font-bold tracking-[-0.03em] sm:h-[112px] sm:rounded-[24px] sm:px-5 sm:pb-5 sm:text-[24px]"
+                    className="relative flex h-[82px] flex-1 cursor-pointer items-end overflow-hidden px-3 pb-3 text-[18px] font-bold tracking-[-0.03em] sm:h-[112px] sm:px-5 sm:pb-5 sm:text-[24px]"
                     initial={{
                       opacity: isStaticFriendReturn ? 1 : 0,
                       y: isStaticFriendReturn ? 0 : 20,
@@ -592,6 +589,7 @@ export default function HeroIntro({
                       ease: smoothEase,
                     }}
                     style={{
+                      borderRadius: panelRadius,
                       backgroundColor: "var(--theme-panel-bg)",
                       color: "var(--theme-panel-text)",
                     }}
@@ -696,14 +694,14 @@ export default function HeroIntro({
                   cardStage === "move"
                     ? cardTransition.source.height
                     : cardTransition.target.height,
-                borderRadius: cardStage === "move" ? 24 : 44,
+                borderRadius: panelRadius,
               }}
               style={{
                 left: cardTransition.target.left,
                 top: cardTransition.target.top,
                 width: cardTransition.source.width,
                 height: cardTransition.source.height,
-                borderRadius: 24,
+                borderRadius: panelRadius,
                 backgroundColor: "var(--theme-panel-bg)",
                 boxShadow: "0 30px 90px var(--theme-panel-shadow)",
               }}

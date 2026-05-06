@@ -35,6 +35,11 @@ body {
   font-family: var(--font-chill-round), sans-serif;
 }
 
+.custom-cursor-enabled,
+.custom-cursor-enabled * {
+  cursor: none !important;
+}
+
 .scrollbar-hidden {
   -ms-overflow-style: none;
   scrollbar-width: none;

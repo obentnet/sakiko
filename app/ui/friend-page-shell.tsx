@@ -4,13 +4,13 @@ import { startTransition, useCallback, useEffect, useRef, useState } from "react
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import BackgroundOrnaments from "./background-ornaments";
 import {
   cardHeight,
   friendFinalIcon,
   friendFinalLabel,
   friendFrameWidth,
   friendPanelWidth,
+  panelRadius,
   smoothEase,
 } from "./home-transition-constants";
 
@@ -317,18 +317,14 @@ export default function FriendPageShell({
   ];
 
   return (
-    <main
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-10"
-      style={{ backgroundColor: "var(--theme-page-bg)" }}
-    >
-      <BackgroundOrnaments />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-10">
       <div
         ref={frameRef}
         className="relative h-[820px] w-full max-w-[1280px]"
         style={{ maxWidth: friendFrameWidth }}
       >
         <motion.section
-          className="absolute left-0 top-1/2 z-10 hidden h-[660px] w-full max-w-[680px] -translate-y-1/2 overflow-hidden rounded-[44px] min-[1200px]:block"
+          className="absolute left-0 top-1/2 z-10 hidden h-[660px] w-full max-w-[680px] -translate-y-1/2 overflow-hidden min-[1200px]:block"
           initial={{ x: leftPanelEnterOffset }}
           animate={{ x: 0 }}
           transition={{
@@ -336,6 +332,7 @@ export default function FriendPageShell({
             ease: smoothEase,
           }}
           style={{
+            borderRadius: panelRadius,
             backgroundColor: "var(--theme-primary)",
             boxShadow: "0 30px 90px var(--theme-primary-shadow)",
           }}
@@ -399,7 +396,7 @@ export default function FriendPageShell({
                       item.href === "/blog" ? "/return/friend/blog" : "/return/friend/note",
                     )
                   }
-                  className="absolute top-0 flex h-[112px] cursor-pointer items-end overflow-hidden rounded-[24px] px-5 pb-5 text-[24px] font-bold tracking-[-0.03em]"
+                  className="absolute top-0 flex h-[112px] cursor-pointer items-end overflow-hidden px-5 pb-5 text-[24px] font-bold tracking-[-0.03em]"
                   initial={{ x: baseX }}
                   animate={{ x: isLeaving ? baseX : targetX }}
                   transition={{
@@ -411,6 +408,7 @@ export default function FriendPageShell({
                   style={{
                     left: 0,
                     width: homeLinkCardWidth,
+                    borderRadius: panelRadius,
                     backgroundColor: "var(--theme-panel-bg)",
                     color: "var(--theme-panel-text)",
                   }}
@@ -446,10 +444,11 @@ export default function FriendPageShell({
             <a
               href="/friend"
               ref={friendCardRef}
-              className="absolute top-0 flex h-[112px] items-end overflow-hidden rounded-[24px] px-5 pb-5 text-[24px] font-bold tracking-[-0.03em]"
+              className="absolute top-0 flex h-[112px] items-end overflow-hidden px-5 pb-5 text-[24px] font-bold tracking-[-0.03em]"
               style={{
                 left: homeLinkCardWidth * 2 + homeLinkGap * 2,
                 width: homeLinkCardWidth,
+                borderRadius: panelRadius,
                 backgroundColor: "var(--theme-panel-bg)",
                 color: "var(--theme-panel-text)",
               }}
@@ -519,9 +518,10 @@ export default function FriendPageShell({
 
         <section
           ref={sectionRef}
-          className="absolute left-1/2 top-1/2 z-20 h-[660px] w-full max-w-[560px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[44px] min-[1200px]:left-auto min-[1200px]:right-0 min-[1200px]:translate-x-0"
+          className="absolute left-1/2 top-1/2 z-20 h-[660px] w-full max-w-[560px] -translate-x-1/2 -translate-y-1/2 overflow-hidden min-[1200px]:left-auto min-[1200px]:right-0 min-[1200px]:translate-x-0"
           style={{
             maxWidth: friendPanelWidth,
+            borderRadius: panelRadius,
             backgroundColor: "var(--theme-panel-bg)",
             boxShadow: "0 30px 90px var(--theme-panel-shadow)",
             opacity: isDesktopClosing ? 0 : 1,
@@ -674,20 +674,20 @@ export default function FriendPageShell({
 
         {closeTransition ? (
           <motion.div
-            className="absolute z-40 overflow-hidden rounded-[44px]"
+            className="absolute z-40 overflow-hidden"
             initial={{
               left: closeTransition.source.left,
               top: closeTransition.source.top,
               width: closeTransition.source.width,
               height: closeTransition.source.height,
-              borderRadius: 44,
+              borderRadius: panelRadius,
             }}
             animate={{
               left: closeTransition.target.left,
               top: closeTransition.target.top,
               width: closeTransition.target.width,
               height: closeTransition.target.height,
-              borderRadius: 24,
+              borderRadius: panelRadius,
             }}
             transition={{
               delay: makeSpaceDuration,
@@ -746,9 +746,10 @@ export default function FriendPageShell({
 
         {isMobileClosing ? (
           <motion.div
-            className="absolute left-1/2 top-1/2 z-40 h-[660px] w-full max-w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-[44px] min-[1200px]:hidden"
+            className="absolute left-1/2 top-1/2 z-40 h-[660px] w-full max-w-[560px] -translate-x-1/2 -translate-y-1/2 min-[1200px]:hidden"
             style={{
               maxWidth: friendPanelWidth,
+              borderRadius: panelRadius,
               backgroundColor: "var(--theme-primary)",
             }}
             initial={{

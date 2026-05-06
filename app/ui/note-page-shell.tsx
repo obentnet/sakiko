@@ -3,7 +3,6 @@
 import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import BackgroundOrnaments from "./background-ornaments";
 import { noteFinalIcon, noteFinalLabel, smoothEase } from "./home-transition-constants";
 
 export type NoteItem = {
@@ -113,11 +112,7 @@ export default function NotePageShell({ notes }: { notes: NoteItem[] }) {
   };
 
   return (
-    <main
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-10"
-      style={{ backgroundColor: "var(--theme-page-bg)" }}
-    >
-      <BackgroundOrnaments />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-10">
       <div className="relative h-[820px] w-full max-w-[720px]">
         <section
           ref={sectionRef}

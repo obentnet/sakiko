@@ -1,3 +1,8 @@
+"use client";
+
+import { motion, useSpring, useTransform } from "framer-motion";
+import { useEffect } from "react";
+
 type Ornament = {
   left: string;
   top: string;
@@ -8,6 +13,11 @@ type Ornament = {
 };
 
 const ornamentScale = 2;
+const ornamentSpring = {
+  stiffness: 72,
+  damping: 22,
+  mass: 0.85,
+} as const;
 
 const ornaments: Ornament[] = [
   {
@@ -210,24 +220,81 @@ const ornaments: Ornament[] = [
   },
 ];
 
+function BackgroundOrnamentItem({
+  ornament,
+  pointerX,
+  pointerY,
+}: {
+  ornament: Ornament;
+  pointerX: ReturnType<typeof useSpring>;
+  pointerY: ReturnType<typeof useSpring>;
+}) {
+  const drift = Math.max(8, Math.min(22, ornament.size * 0.22));
+  const x = useTransform(pointerX, (value) => value * -drift);
+  const y = useTransform(pointerY, (value) => value * -drift);
+
+  return (
+    <motion.div
+      className="absolute opacity-55"
+      style={{
+        left: ornament.left,
+        top: ornament.top,
+        width: ornament.size,
+        height: ornament.size,
+        color: ornament.color,
+        rotate: ornament.rotation,
+        scale: ornamentScale,
+        x,
+        y,
+      }}
+    >
+      {ornament.svg}
+    </motion.div>
+  );
+}
+
 export default function BackgroundOrnaments() {
+  const pointerX = useSpring(0, ornamentSpring);
+  const pointerY = useSpring(0, ornamentSpring);
+
+  useEffect(() => {
+    if (!window.matchMedia("(pointer: fine)").matches) {
+      pointerX.set(0);
+      pointerY.set(0);
+      return;
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const nextX = (event.clientX / window.innerWidth - 0.5) * 2;
+      const nextY = (event.clientY / window.innerHeight - 0.5) * 2;
+
+      pointerX.set(nextX);
+      pointerY.set(nextY);
+    };
+
+    const resetPointer = () => {
+      pointerX.set(0);
+      pointerY.set(0);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("blur", resetPointer);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("blur", resetPointer);
+    };
+  }, [pointerX, pointerY]);
+
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
       {ornaments.map((ornament, index) => (
-        <div
+        <BackgroundOrnamentItem
           key={`${ornament.left}-${ornament.top}-${index}`}
-          className="absolute opacity-55"
-          style={{
-            left: ornament.left,
-            top: ornament.top,
-            width: ornament.size,
-            height: ornament.size,
-            color: ornament.color,
-            transform: `rotate(${ornament.rotation}deg) scale(${ornamentScale})`,
-          }}
-        >
-          {ornament.svg}
-        </div>
+          ornament={ornament}
+          pointerX={pointerX}
+          pointerY={pointerY}
+        />
       ))}
     </div>
   );
