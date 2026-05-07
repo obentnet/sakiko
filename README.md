@@ -11,3 +11,6 @@ This is a personal blog page deeply integrated with the NeHex personal blog engi
 After cloning to your local machine, copy `.env.example` to `.env` and edit its contents.
 
 Use `npm run dev` for development.
+
+# Thanks
+[@daidr](https://github.com/daidr)
