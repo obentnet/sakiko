@@ -187,7 +187,14 @@ export default function AboutPageShell({ links, activity }: AboutPageShellProps)
       icon: "https://uegee.com/android-chrome-512x512.png",
       title: "NeHex",
       body: "次世代个人空间解决方案",
-      href: links.home,
+      href: "https://github.com/nehex",
+      external: true,
+    },
+    {
+      icon: "https://ushio.ueg.ee/favicon.png",
+      title: "Ushio调色板",
+      body: "一个收集撞色的小工具站点",
+      href: "https://ushio.ueg.ee",
       external: true,
     },
   ];
