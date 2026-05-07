@@ -47,9 +47,13 @@ const friendReturnDuration = 0.62;
 const autoOpenDelay = friendReturnDuration + 0.04;
 const returnImageRevealDelay = returnSocialDelay + 0.45 + 0.12;
 const friendReturnImageRevealDelay = friendReturnDuration + 0.14;
-const introAssetSources = ["/head.jpg", "/eromanga.png"];
+const topIntroImages = ["/new-eromanga.png", "/new-eromanga_2.png"] as const;
+const introAssetSources = ["/head.jpg", ...topIntroImages];
 const introBlackoutFadeDuration = 0.42;
 const aboutTransitionDuration = 0.74;
+const topImageBlurDuration = 0.24;
+const topImageSharpenDuration = 0.28;
+const topImageSwitchBlur = 20;
 
 const linkLabelVariants = {
   rest: { scale: 1 },
@@ -94,6 +98,7 @@ const socialLabelVariants = {
 
 type CardTransitionStage = "idle" | "move" | "expand" | "settle";
 type TransitionCardKind = "blog" | "note" | "about" | "friend";
+type TopImageSwapStage = "idle" | "blurring" | "sharpening";
 
 type SocialLinks = {
   bilibili: string;
@@ -332,6 +337,10 @@ export default function HeroIntro({
   const [aboutTransition, setAboutTransition] =
     useState<AboutTransitionSnapshot | null>(null);
   const [aboutSourceHidden, setAboutSourceHidden] = useState(false);
+  const [topImageIndex, setTopImageIndex] = useState(0);
+  const [topImageSwapStage, setTopImageSwapStage] =
+    useState<TopImageSwapStage>("idle");
+  const isTopImageSwitching = topImageSwapStage !== "idle";
   const isAboutTransitioning = aboutTransition !== null;
 
   useEffect(() => {
@@ -707,6 +716,14 @@ export default function HeroIntro({
     return () => window.clearTimeout(timer);
   }, [autoOpenKind, isIntroReady]);
 
+  const toggleTopImage = () => {
+    if (!isIntroReady || cardTransition || isAboutTransitioning || isTopImageSwitching) {
+      return;
+    }
+
+    setTopImageSwapStage("blurring");
+  };
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
       {!isIntroReady || isBlackoutVisible ? (
@@ -817,9 +834,14 @@ export default function HeroIntro({
               </div>
             </div>
 
-            <motion.div
-              aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-1/2 z-20 hidden sm:block sm:h-[280px] sm:w-[242px] sm:translate-x-[76px] sm:-translate-y-[544px]"
+            <motion.button
+              type="button"
+              onClick={toggleTopImage}
+              onDragStart={(event) => {
+                event.preventDefault();
+              }}
+              className="absolute left-1/2 top-1/2 z-20 hidden cursor-pointer border-0 bg-transparent p-0 sm:block sm:h-[280px] sm:w-[242px] sm:translate-x-[76px] sm:-translate-y-[554px]"
+              aria-label="切换插图"
               initial={
                 returningFromDetail
                   ? { opacity: 0, filter: "blur(18px)" }
@@ -828,25 +850,46 @@ export default function HeroIntro({
               animate={
                 cardTransition || isAboutTransitioning
                   ? { opacity: 0, filter: "blur(22px)" }
-                  : { opacity: 1, filter: "blur(0px)" }
+                  : topImageSwapStage === "blurring"
+                    ? { opacity: 1, filter: `blur(${topImageSwitchBlur}px)` }
+                    : { opacity: 1, filter: "blur(0px)" }
               }
               transition={{
-                delay: cardTransition || isAboutTransitioning ? 0 : imageEntryDelay,
+                delay:
+                  cardTransition || isAboutTransitioning || topImageSwapStage !== "idle"
+                    ? 0
+                    : imageEntryDelay,
                 duration: cardTransition || isAboutTransitioning
                   ? imageExitDuration
-                  : imageRevealDuration,
+                  : topImageSwapStage === "idle"
+                    ? imageRevealDuration
+                    : topImageSwapStage === "blurring"
+                      ? topImageBlurDuration
+                      : topImageSharpenDuration,
                 ease: smoothEase,
+              }}
+              onAnimationComplete={() => {
+                if (topImageSwapStage === "blurring") {
+                  setTopImageIndex((current) => (current + 1) % topIntroImages.length);
+                  setTopImageSwapStage("sharpening");
+                  return;
+                }
+
+                if (topImageSwapStage === "sharpening") {
+                  setTopImageSwapStage("idle");
+                }
               }}
             >
               <Image
-                src="/eromanga.png"
+                src={topIntroImages[topImageIndex]}
                 alt=""
                 fill
                 sizes="242px"
                 className="object-contain object-top"
                 priority
+                draggable={false}
               />
-            </motion.div>
+            </motion.button>
 
             <div
               ref={avatarShellRef}
