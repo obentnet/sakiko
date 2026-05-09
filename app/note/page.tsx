@@ -23,26 +23,30 @@ function formatNoteDate(value: string) {
 }
 
 async function getNotes() {
-  const response = await fetch(siteConfig.noteApiUrl);
+  try {
+    const response = await fetch(siteConfig.noteApiUrl);
 
-  if (!response.ok) {
-    throw new Error(`Daily request failed: ${response.status}`);
+    if (!response.ok) {
+      return [] as NoteItem[];
+    }
+
+    const payload = (await response.json()) as DailyResponse;
+    return payload.data
+      .filter((item) => item.daily_type === "note")
+      .map(
+        (item) =>
+          ({
+            id: item.id,
+            title: item.title,
+            content: item.content,
+            create_time_label: formatNoteDate(item.create_time),
+            weather: item.weather,
+            daily_type: item.daily_type,
+          }) satisfies NoteItem,
+      );
+  } catch {
+    return [];
   }
-
-  const payload = (await response.json()) as DailyResponse;
-  return payload.data
-    .filter((item) => item.daily_type === "note")
-    .map(
-      (item) =>
-        ({
-          id: item.id,
-          title: item.title,
-          content: item.content,
-          create_time_label: formatNoteDate(item.create_time),
-          weather: item.weather,
-          daily_type: item.daily_type,
-        }) satisfies NoteItem,
-    );
 }
 
 export default async function NotePage() {

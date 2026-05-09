@@ -59,13 +59,17 @@ function parseFeed(xml: string): BlogFeedItem[] {
 }
 
 async function getBlogFeed() {
-  const response = await fetch(siteConfig.blogFeedUrl);
+  try {
+    const response = await fetch(siteConfig.blogFeedUrl);
 
-  if (!response.ok) {
-    throw new Error(`Feed request failed: ${response.status}`);
+    if (!response.ok) {
+      return [] as BlogFeedItem[];
+    }
+
+    return parseFeed(await response.text());
+  } catch {
+    return [];
   }
-
-  return parseFeed(await response.text());
 }
 
 export default async function BlogPage() {

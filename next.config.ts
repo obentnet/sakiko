@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: getAllowedDevOrigins(),
   images: {
     unoptimized: true,
+    remotePatterns: [
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "**" },
+    ],
   },
 };
 

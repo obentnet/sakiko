@@ -296,14 +296,14 @@ export default function HeroIntro({
   const linkCards = [
     { kind: "blog" as const, label: "博文", icon: "/home.svg" },
     { kind: "note" as const, label: "随笔", icon: "/note.svg" },
-    { kind: "about" as const, label: "关于", icon: "/about.svg" },
     { kind: "friend" as const, label: "朋友", icon: "/friends.svg" },
+    { kind: "about" as const, label: "关于", icon: "/about.svg" },
   ];
 
   const socialCards = [
     { label: "bilibili", icon: "/social/bilibili.svg", href: socialLinks.bilibili },
     { label: "github", icon: "/social/github.svg", href: socialLinks.github },
-    { label: "twitter", icon: "/social/twitter.svg", href: socialLinks.twitter },
+    { label: "email", icon: "/social/mail.svg", href: "mailto:i@ueg.ee" },
     { label: "donate", icon: "/social/donate.svg", href: socialLinks.donate },
   ];
 
@@ -431,17 +431,11 @@ export default function HeroIntro({
       return;
     }
 
-    if (aboutTransition) {
-      const frame = window.requestAnimationFrame(() => {
-        setAboutSourceHidden(true);
-      });
+    const frame = window.requestAnimationFrame(() => {
+      setAboutSourceHidden(Boolean(aboutTransition));
+    });
 
-      return () => window.cancelAnimationFrame(frame);
-    }
-
-    setAboutSourceHidden(false);
-
-    return;
+    return () => window.cancelAnimationFrame(frame);
   }, [aboutTransition, isIntroReady]);
 
   useEffect(() => {
@@ -486,35 +480,6 @@ export default function HeroIntro({
     }
   }, [aboutTransition, cardStage, finishAboutTransition, finishCardTransition, isIntroReady]);
 
-  const getCardElements = (kind: TransitionCardKind) => {
-    switch (kind) {
-      case "blog":
-        return {
-          cardRef: blogCardRef.current,
-          labelRef: blogLabelRef.current,
-          iconRef: blogIconRef.current,
-        };
-      case "note":
-        return {
-          cardRef: noteCardRef.current,
-          labelRef: noteLabelRef.current,
-          iconRef: noteIconRef.current,
-        };
-      case "about":
-        return {
-          cardRef: aboutCardRef.current,
-          labelRef: aboutLabelRef.current,
-          iconRef: aboutIconRef.current,
-        };
-      case "friend":
-        return {
-          cardRef: friendCardRef.current,
-          labelRef: friendLabelRef.current,
-          iconRef: friendIconRef.current,
-        };
-    }
-  };
-
   const getCardRefHandles = (kind: TransitionCardKind) => {
     switch (kind) {
       case "blog":
@@ -544,7 +509,7 @@ export default function HeroIntro({
     }
   };
 
-  const startCardTransition = (kind: TransitionCardKind) => {
+  const startCardTransition = useCallback((kind: TransitionCardKind) => {
     if (kind === "about") {
       if (
         aboutTransition ||
@@ -642,7 +607,29 @@ export default function HeroIntro({
       return;
     }
 
-    const { cardRef, labelRef, iconRef } = getCardElements(kind);
+    const cardElements = (() => {
+      switch (kind) {
+        case "blog":
+          return {
+            cardRef: blogCardRef.current,
+            labelRef: blogLabelRef.current,
+            iconRef: blogIconRef.current,
+          };
+        case "note":
+          return {
+            cardRef: noteCardRef.current,
+            labelRef: noteLabelRef.current,
+            iconRef: noteIconRef.current,
+          };
+        case "friend":
+          return {
+            cardRef: friendCardRef.current,
+            labelRef: friendLabelRef.current,
+            iconRef: friendIconRef.current,
+          };
+      }
+    })();
+
     const targetElement =
       kind === "friend" ? friendTargetRef.current : backgroundCardRef.current;
     const config = getCardConfig(kind);
@@ -651,18 +638,18 @@ export default function HeroIntro({
       cardTransition ||
       !frameRef.current ||
       !targetElement ||
-      !cardRef ||
-      !labelRef ||
-      !iconRef
+      !cardElements.cardRef ||
+      !cardElements.labelRef ||
+      !cardElements.iconRef
     ) {
       return;
     }
 
     const frameRect = frameRef.current.getBoundingClientRect();
     const targetRect = targetElement.getBoundingClientRect();
-    const cardRect = cardRef.getBoundingClientRect();
-    const labelRect = labelRef.getBoundingClientRect();
-    const iconRect = iconRef.getBoundingClientRect();
+    const cardRect = cardElements.cardRef.getBoundingClientRect();
+    const labelRect = cardElements.labelRef.getBoundingClientRect();
+    const iconRect = cardElements.iconRef.getBoundingClientRect();
 
     const snapshot = {
       kind,
@@ -695,9 +682,9 @@ export default function HeroIntro({
     } satisfies CardTransitionSnapshot;
 
     pushedRef.current = false;
-      setCardTransition(snapshot);
-      setCardStage("move");
-  };
+    setCardTransition(snapshot);
+    setCardStage("move");
+  }, [aboutTransition, cardTransition]);
 
   useEffect(() => {
     if (!isIntroReady) {
@@ -714,7 +701,7 @@ export default function HeroIntro({
     }, autoOpenDelay * 1000);
 
     return () => window.clearTimeout(timer);
-  }, [autoOpenKind, isIntroReady]);
+  }, [autoOpenKind, isIntroReady, startCardTransition]);
 
   const toggleTopImage = () => {
     if (!isIntroReady || cardTransition || isAboutTransitioning || isTopImageSwitching) {
@@ -963,8 +950,8 @@ export default function HeroIntro({
               </small>
             </motion.div>
 
-            <motion.p
-              className="absolute left-1/2 z-10 w-full max-w-[520px] -translate-x-1/2 text-center text-[18px] font-bold leading-7 tracking-[-0.03em]"
+            <motion.div
+              className="absolute left-1/2 z-10 flex w-full max-w-[520px] -translate-x-1/2 items-center justify-center gap-2 text-center text-[18px] font-bold leading-7 tracking-[-0.03em]"
               initial={{
                 opacity: isStaticFriendReturn ? 1 : 0,
                 y: isStaticFriendReturn ? 0 : 10,
@@ -987,8 +974,39 @@ export default function HeroIntro({
                 color: "var(--theme-primary-text)",
               }}
             >
-              曾几何时 稚嫩的小手也拥有了追越我们的坚强
-            </motion.p>
+              <span>曾几何时 稚嫩的小手也拥有了追越我们的坚强</span>
+              <motion.span
+                className="relative inline-flex"
+                initial="rest"
+                animate="rest"
+                whileHover="hover"
+              >
+                <motion.span
+                  className="relative flex h-[22px] w-[22px] items-center justify-center rounded-full border-2"
+                  variants={socialButtonVariants}
+                  style={{ backgroundColor: "var(--theme-panel-bg)" }}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="h-[10px] w-[10px]"
+                    style={{
+                      backgroundColor: "var(--theme-panel-text)",
+                      ...getMaskStyle("/about.svg"),
+                    }}
+                  />
+                  <motion.span
+                    className="pointer-events-none absolute left-1/2 top-[30px] -translate-x-1/2 whitespace-nowrap rounded-full px-2 py-[2px] text-[12px] font-bold tracking-[-0.03em]"
+                    variants={socialLabelVariants}
+                    style={{
+                      backgroundColor: "var(--theme-panel-bg)",
+                      color: "var(--theme-panel-text)",
+                    }}
+                  >
+                    小さなてのひら - riya 《CLANNAD AFTER STORY》TURE ED
+                  </motion.span>
+                </motion.span>
+              </motion.span>
+            </motion.div>
 
             <div
               className="absolute left-1/2 z-10 grid w-full max-w-[560px] -translate-x-1/2 grid-cols-2 gap-2 sm:flex sm:gap-4"

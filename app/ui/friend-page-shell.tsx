@@ -68,7 +68,6 @@ type CloseTransitionSnapshot = {
 const avatarSize = 152;
 const cardInnerTopPadding = 40;
 const avatarLift = cardHeight / 2 - avatarSize / 2 - cardInnerTopPadding;
-const friendPanelHeight = 660;
 const closeTransitionDuration = 0.58;
 const makeSpaceDuration = 0.28;
 const totalCloseDuration = makeSpaceDuration + closeTransitionDuration;
@@ -313,10 +312,11 @@ export default function FriendPageShell({
   const linkCards = [
     { label: "博文", icon: "/home.svg", href: "/blog" },
     { label: "随笔", icon: "/note.svg", href: "/note" },
-    { label: "关于", icon: "/about.svg", href: "/about" },
     { label: "朋友", icon: "/friends.svg", href: "/friend" },
+    { label: "关于", icon: "/about.svg", href: "/about" },
   ];
   const visibleLinkCards = linkCards.filter((item) => item.label !== "朋友");
+  const friendCardIndex = linkCards.findIndex((item) => item.label === "朋友");
 
   const socialCards = [
     { label: "bilibili", icon: "/social/bilibili.svg", href: socialLinks.bilibili },
@@ -393,8 +393,10 @@ export default function FriendPageShell({
             }}
           >
             {visibleLinkCards.map((item, index) => {
-              const baseX = index * (homeLinkCardWidth + homeLinkGap);
-              const targetX = homeLinkCenterOffset + baseX;
+              const slotIndex = linkCards.findIndex((card) => card.label === item.label);
+              const baseX = slotIndex * (homeLinkCardWidth + homeLinkGap);
+              const compactX = index * (homeLinkCardWidth + homeLinkGap);
+              const targetX = homeLinkCenterOffset + compactX;
 
               return (
                 <motion.button
@@ -459,7 +461,7 @@ export default function FriendPageShell({
               ref={friendCardRef}
               className="absolute top-0 flex h-[112px] items-end overflow-hidden px-5 pb-5 text-[24px] font-bold tracking-[-0.03em]"
               style={{
-                left: homeLinkCardWidth * 3 + homeLinkGap * 3,
+                left: homeLinkCardWidth * friendCardIndex + homeLinkGap * friendCardIndex,
                 width: homeLinkCardWidth,
                 borderRadius: panelRadius,
                 backgroundColor: "var(--theme-panel-bg)",
@@ -645,9 +647,13 @@ export default function FriendPageShell({
                 >
                   <div className="flex items-start gap-4">
                     {friend.favicon ? (
-                      <img
+                      <Image
                         src={friend.favicon}
                         alt=""
+                        width={48}
+                        height={48}
+                        unoptimized
+                        draggable={false}
                         className="h-12 w-12 shrink-0 rounded-2xl object-cover"
                         loading="lazy"
                       />
