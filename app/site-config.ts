@@ -32,6 +32,6 @@ export const heroIntroLinks = {
     bilibili: siteConfig.bilibiliUrl,
     github: siteConfig.githubUrl,
     twitter: siteConfig.twitterUrl,
-    donate: siteConfig.donateUrl,
+    donate: "/donate",
   },
 } as const;
