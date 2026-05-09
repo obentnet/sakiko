@@ -4,15 +4,18 @@ export type ThemePair = {
 };
 
 export const themePairs: ThemePair[] = [
-  { primary: "#002EA6", background: "#FFE76F" },
-  { primary: "#01847F", background: "#F9D2E4" },
-  { primary: "#FF770F", background: "#000026" },
+  { primary: "#FF978A", background: "#F9F9F9" },
+  { primary: "#0B3954", background: "#D4F1F4" },
+  { primary: "#95C194", background: "#E8E3DF" },
   { primary: "#81D8CF", background: "#F8F5D6" },
   { primary: "#492D22", background: "#D8C7B5" },
-  { primary: "#003153", background: "#E5DDD7" },
-  { primary: "#D5E3D4", background: "#AA9649" },
-  { primary: "#F9D3E3", background: "#6B5458" },
-  { primary: "#EFEFEF", background: "#88ABDA" },
+  { primary: "#175E3D", background: "#ECD17A" },
+  { primary: "#57687C", background: "#8ACAC0" },
+  { primary: "#A4ABD6", background: "#EEEAD9" },
+  { primary: "#F29A76", background: "#EDF1BB" },
+  { primary: "#8BA3C7", background: "#EAECF1" },
+  { primary: "#5AA4AE", background: "#F5F2E9" },
+  { primary: "#F0C2A2", background: "#F5F3F2" },
 ];
 
 const lightText = "#FBF6EC";

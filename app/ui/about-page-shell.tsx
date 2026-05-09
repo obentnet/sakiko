@@ -5,7 +5,60 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { FaPython } from "react-icons/fa";
+import { SiTypescript } from "react-icons/si";
+import { SiJavascript } from "react-icons/si";
+import { BiLogoGoLang } from "react-icons/bi";
+import { RiJavaLine } from "react-icons/ri";
+import { TbBrandCpp } from "react-icons/tb";
+import { SiSwift } from "react-icons/si";
+import { FaRust } from "react-icons/fa6";
+import { FaPhp } from "react-icons/fa";
+import { SiLua } from "react-icons/si";
+import { SiGnubash } from "react-icons/si";
+import { FaNodeJs } from "react-icons/fa";
+
+// Frameworks & Libraries
+import { FaReact } from "react-icons/fa";
+import { RiNextjsFill } from "react-icons/ri";
+import { IoLogoVue } from "react-icons/io5";
+import { IoLogoWechat } from "react-icons/io5";
+import { SiNuxt } from "react-icons/si";
+import { SiExpo } from "react-icons/si";
+import { SiHono } from "react-icons/si";
+import { SiBun } from "react-icons/si";
+import { SiFastapi } from "react-icons/si";
+
+// Tools & DevOps
+import { FaCloudflare } from "react-icons/fa";
+import { FaQq } from "react-icons/fa";
+import { IoLogoFirebase } from "react-icons/io5";
+import { IoLogoVercel } from "react-icons/io5";
+import { FaAws } from "react-icons/fa";
+import { FaDocker } from "react-icons/fa";
+import { SiVitest } from "react-icons/si";
+import { SiPnpm } from "react-icons/si";
+import { FaNpm } from "react-icons/fa";
+
+// Databases
+import { BiLogoPostgresql } from "react-icons/bi";
+import { SiMysql } from "react-icons/si";
+import { RiSupabaseFill } from "react-icons/ri";
+import { SiMongodb } from "react-icons/si";
+import { SiSqlite } from "react-icons/si";
+import { SiPrisma } from "react-icons/si";
+import { DiRedis } from "react-icons/di";
+
+//OS & Environment
+import { FaUbuntu } from "react-icons/fa";
+import { FaDebian } from "react-icons/fa6";
+import { SiLinuxmint } from "react-icons/si";
+import { FaWindows } from "react-icons/fa6";
+
+
+
 import { cardHeight, panelRadius, smoothEase } from "./home-transition-constants";
+
 
 const avatarSize = 152;
 const aboutPanelWidth = 680;
@@ -42,7 +95,8 @@ type ContactCard = {
   title: string;
   subtitle: string;
   href: string;
-  icon: string;
+  icon?: string;
+  iconComponent?: React.ComponentType<{ className?: string }>;
   external?: boolean;
 };
 
@@ -54,21 +108,286 @@ type WorkCard = {
   external?: boolean;
 };
 
-const introParagraphs = [
-  "😒 一个失业的23岁少年;",
-  "👨‍💻 目前在找工作，喜欢全栈开发、开源和写作;",
-] as const;
 
-const skillBadges = [
-  { label: "JS", bg: "#f8df4f", fg: "#2a2622" },
-  { label: "TS", bg: "#1e88d8", fg: "#ffffff" },
-  { label: "Vue", bg: "#eaf4ed", fg: "#35b36f" },
-  { label: "Nuxt", bg: "#eaf8f0", fg: "#1abc70" },
-  { label: "Node", bg: "#eff6e8", fg: "#72b44b" },
-  { label: "CSS", bg: "#eef4ff", fg: "#4f79d9" },
-  { label: "Motion", bg: "#ffe8f4", fg: "#d35c98" },
-  { label: "UI", bg: "#f6efe5", fg: "#7c5f60" },
-] as const;
+type SkillPreference = {
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconColor: string;
+};
+
+type SkillCategory = {
+  title: string;
+  items: SkillPreference[];
+};
+
+const skillCategories: SkillCategory[] = [
+  {
+    title: "Languages",
+    items: [
+      {
+        name: "Python",
+        icon: FaPython,
+        iconBg: "#f7e37a",
+        iconColor: "#346fa2",
+      },
+      {
+        name: "TypeScript",
+        icon: SiTypescript,
+        iconBg: "#dcecff",
+        iconColor: "#3178c6",
+      },
+      {
+        name: "JavaScript",
+        icon: SiJavascript,
+        iconBg: "#f7df1e",
+        iconColor: "#333",
+      },
+      {
+        name: "Go",
+        icon: BiLogoGoLang,
+        iconBg: "#00add8",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Java",
+        icon: RiJavaLine,
+        iconBg: "#007396",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "C++",
+        icon: TbBrandCpp,
+        iconBg: "#00599c",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Swift",
+        icon: SiSwift,
+        iconBg: "#f05138",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Rust",
+        icon: FaRust,
+        iconBg: "#000000",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "PHP",
+        icon: FaPhp,
+        iconBg: "#4f5b93",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Lua",
+        icon: SiLua,
+        iconBg: "#000080",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Bash",
+        icon: SiGnubash,
+        iconBg: "#f0f0f0",
+        iconColor: "#333333",
+      },
+      {
+        name: "Node.js",
+        icon: FaNodeJs,
+        iconBg: "#68a063",
+        iconColor: "#ffffff",
+      },
+    ],
+  },
+  {
+    title: "Frameworks & Libraries",
+    items: [
+      {
+        name: "React",
+        icon: FaReact,
+        iconBg: "#61dafb",
+        iconColor: "#20232a",
+      },
+      {
+        name: "Next.js",
+        icon: RiNextjsFill,
+        iconBg: "#000000",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Vue.js",
+        icon: IoLogoVue,
+        iconBg: "#4fc08d",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Nuxt.js",
+        icon: SiNuxt,
+        iconBg: "#00c58e",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Expo",
+        icon: SiExpo,
+        iconBg: "#000020",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Hono",
+        icon: SiHono,
+        iconBg: "#0f172a",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Bun",
+        icon: SiBun,
+        iconBg: "#ffcc33",
+        iconColor: "#000000",
+      },
+      {
+        name: "FastAPI",
+        icon: SiFastapi,
+        iconBg: "#009688",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Node.js",
+        icon: FaNodeJs,
+        iconBg: "#68a063",
+        iconColor: "#ffffff",
+      },
+    ],
+  },
+  {
+    title: "Tools & DevOps",
+    items: [
+      {
+        name: "Cloudflare",
+        icon: FaCloudflare,
+        iconBg: "#f38020",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Firebase",
+        icon: IoLogoFirebase,
+        iconBg: "#ffcb2b",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Vercel",
+        icon: IoLogoVercel,
+        iconBg: "#000000",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "AWS",
+        icon: FaAws,
+        iconBg: "#ff9900",
+        iconColor: "#000000",
+      },
+      {
+        name: "Docker",
+        icon: FaDocker,
+        iconBg: "#2496ed",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Vitest",
+        icon: SiVitest,
+        iconBg: "#ffcc33",
+        iconColor: "#000000",
+      },
+      {
+        name: "pnpm",
+        icon: SiPnpm,
+        iconBg: "#f69220",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "NPM",
+        icon: FaNpm,
+        iconBg: "#cb3837",
+        iconColor: "#ffffff",
+      }
+    ],
+  },
+  {
+    title: "Databases",
+    items: [
+      {
+        name: "PostgreSQL",
+        icon: BiLogoPostgresql,
+        iconBg: "#336791",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "MySQL",
+        icon: SiMysql,
+        iconBg: "#4f5b93",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Supabase",
+        icon: RiSupabaseFill,
+        iconBg: "#3fcf8e",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "MongoDB",
+        icon: SiMongodb,
+        iconBg: "#47a248",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "SQLite",
+        icon: SiSqlite,
+        iconBg: "#003b5c",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Prisma",
+        icon: SiPrisma,
+        iconBg: "#2d2d2d",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Redis",
+        icon: DiRedis,
+        iconBg: "#d82c20",
+        iconColor: "#ffffff",
+      }
+    ]
+  },
+  {
+    title: "OS & Environment",
+    items: [
+      {
+        name: "Ubuntu",
+        icon: FaUbuntu,
+        iconBg: "#e95420",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Debian",
+        icon: FaDebian,
+        iconBg: "#a70000",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Linux Mint",
+        icon: SiLinuxmint,
+        iconBg: "#6495ED",
+        iconColor: "#ffffff",
+      },
+      {
+        name: "Windows",
+        icon: FaWindows,
+        iconBg: "#0078d4",
+        iconColor: "#ffffff",
+      }
+    ]
+  }
+];
 
 function getMaskStyle(icon: string) {
   return {
@@ -168,17 +487,16 @@ export default function AboutPageShell({ links, activity }: AboutPageShellProps)
       external: true,
     },
     {
-      title: "rss",
-      subtitle: "feed / uegee.com",
-      href: links.rss,
-      icon: "/rss.svg",
-      external: true,
+      title: "wechat",
+      subtitle: "Guess?",
+      href: "#",
+      iconComponent: IoLogoWechat,
     },
     {
-      title: "home",
-      subtitle: "back to homepage",
-      href: links.home,
-      icon: "/globe.svg",
+      title: "qq",
+      subtitle: "1283224552",
+      href: "https://qm.qq.com/q/ppdiacSBXi",
+      iconComponent: FaQq,
     },
   ];
 
@@ -330,28 +648,8 @@ export default function AboutPageShell({ links, activity }: AboutPageShellProps)
             </span>
           </div>
 
-          <div className="absolute left-1/2 top-[102px] z-20 -translate-x-1/2">
-            <div
-              className="relative overflow-hidden rounded-full border-4 border-white shadow-[0_24px_60px_rgba(0,0,0,0.16)]"
-              style={{
-                height: avatarSize,
-                width: avatarSize,
-                opacity: isCompressing ? 0 : 1,
-                transition: "opacity 0.16s ease-out",
-              }}
-            >
-              <Image
-                src="/head.jpg"
-                alt="Avatar"
-                fill
-                sizes={`${avatarSize}px`}
-                className="object-cover"
-              />
-            </div>
-          </div>
-
           <motion.div
-            className="scrollbar-hidden absolute inset-x-0 bottom-0 top-[278px] overflow-y-auto px-6 pb-6 sm:top-[290px] sm:px-8 sm:pb-8"
+            className="scrollbar-hidden absolute inset-x-0 bottom-0 top-[102px] overflow-y-auto px-6 pb-6 sm:px-8 sm:pb-8"
             initial="hidden"
             animate={isLeaving ? "exit" : "show"}
             variants={{
@@ -374,6 +672,27 @@ export default function AboutPageShell({ links, activity }: AboutPageShellProps)
               scrollbarWidth: "none",
             }}
           >
+            <div className="mb-6 flex justify-center">
+              <div
+                className="relative overflow-hidden rounded-full border-4 border-white shadow-[0_24px_60px_rgba(0,0,0,0.16)]"
+                style={{
+                  height: avatarSize,
+                  width: avatarSize,
+                  opacity: isCompressing ? 0 : 1,
+                  transition: "opacity 0.16s ease-out",
+                }}
+              >
+                <Image
+                  src="/head.jpg"
+                  alt="Avatar"
+                  fill
+                  sizes={`${avatarSize}px`}
+                  draggable={false}
+                  className="object-cover"
+                />
+              </div>
+            </div>
+
             <motion.div
               className="space-y-5 text-center"
               variants={{
@@ -409,7 +728,7 @@ export default function AboutPageShell({ links, activity }: AboutPageShellProps)
                 className="mx-auto max-w-[420px] text-[16px] font-bold leading-7 tracking-[-0.03em]"
                 style={{ color: "var(--theme-primary-text)" }}
               >
-               一个穷孩子生活在有钱人的城市
+                一个穷孩子生活在有钱人的城市
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-2">
@@ -442,11 +761,35 @@ export default function AboutPageShell({ links, activity }: AboutPageShellProps)
                 }}
               >
                 <h2 className="text-[24px] font-bold tracking-[-0.03em]">关于我</h2>
-                {introParagraphs.map((paragraph) => (
-                  <p key={paragraph} className="mt-3 text-[15px] leading-7">
-                    {paragraph}
-                  </p>
-                ))}
+
+                <p className="mt-1 text-[15px] leading-7">
+                  Hi，你发现了这里！<br />
+                  我是 狱杰 (UEGEE)，目前居住在 中国 天津市，毕业于山东水利学院；主修计算机网络安全；<br />
+                </p>
+
+                <h3 className="text-[18px] font-bold tracking-[-0.03em]">我在做什么</h3>
+                <p className="mt-1 text-[15px] leading-7">
+                  正在天津市内寻找工作机会，就业方向：前后栈工程师 / 运维 / 视频剪辑 等等……（只要能糊口就行）
+                </p>
+
+                <h3 className="text-[18px] font-bold tracking-[-0.03em]">我是个什么样的人</h3>
+                <p className="mt-1 text-[15px] leading-7">
+                  emm,我不知道该怎么定义自己，所以给你几个标签了解了解？<br/>
+                  <v-chip>Developer</v-chip>
+                  <v-chip>Loser</v-chip>
+                  <v-chip>Design</v-chip>
+                  <v-chip>Anime Fans</v-chip>
+                  <v-chip>JK Fans</v-chip>
+                  <v-chip>FPS Gamer</v-chip>
+                  <v-chip>Poor</v-chip>
+                  <v-chip>Dreamer</v-chip>
+                </p>
+
+                <h3 className="text-[18px] font-bold tracking-[-0.03em]">这个页面都会有什么</h3>
+                <p className="mt-1 text-[15px] leading-7">
+                  这个页面就是一个我的小站点，博文、随笔、朋友会随着博客自动刷新，其他页面可能很久都不会动？
+                </p>
+
               </motion.article>
 
               <motion.div
@@ -485,14 +828,18 @@ export default function AboutPageShell({ links, activity }: AboutPageShellProps)
                             boxShadow: "inset 0 0 0 1px rgba(31, 26, 22, 0.04)",
                           }}
                         >
-                          <span
-                            aria-hidden="true"
-                            className="h-[18px] w-[18px] shrink-0"
-                            style={{
-                              backgroundColor: "var(--theme-chip-text)",
-                              ...getMaskStyle(item.icon),
-                            }}
-                          />
+                          {item.iconComponent ? (
+                            <item.iconComponent className="h-[18px] w-[18px] shrink-0" />
+                          ) : item.icon ? (
+                            <span
+                              aria-hidden="true"
+                              className="h-[18px] w-[18px] shrink-0"
+                              style={{
+                                backgroundColor: "var(--theme-chip-text)",
+                                ...getMaskStyle(item.icon),
+                              }}
+                            />
+                          ) : null}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p
@@ -535,18 +882,45 @@ export default function AboutPageShell({ links, activity }: AboutPageShellProps)
                 }}
               >
                 <h2 className="text-[24px] font-bold tracking-[-0.03em]">技能偏好</h2>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {skillBadges.map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex h-[46px] min-w-[46px] items-center justify-center rounded-[14px] px-3 text-[18px] font-bold tracking-[-0.04em]"
-                      style={{
-                        backgroundColor: item.bg,
-                        color: item.fg,
-                      }}
-                    >
-                      {item.label}
-                    </div>
+                <div className="mt-4 space-y-5">
+                  {skillCategories.map((category) => (
+                    <section key={category.title}>
+                      <h3
+                        className="text-[12px] font-bold uppercase tracking-[0.16em]"
+                        style={{ color: "var(--theme-surface-muted)" }}
+                      >
+                        {category.title}
+                      </h3>
+                      {category.items.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {category.items.map((item) => (
+                            <div
+                              key={`${category.title}-${item.name}`}
+                              className="flex h-[30px] items-center overflow-hidden rounded-[10px] pr-3"
+                              style={{
+                                backgroundColor: "var(--theme-chip-bg)",
+                                color: "var(--theme-chip-text)",
+                              }}
+                            >
+                              <span
+                                className="flex h-full aspect-square shrink-0 items-center justify-center"
+                                style={{ backgroundColor: item.iconBg, color: item.iconColor }}
+                              >
+                                <item.icon className="h-[18px] w-[18px]" />
+                              </span>
+                              <span className="ml-3 text-[16px] font-bold tracking-[-0.02em]">{item.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p
+                          className="mt-2 text-[13px] tracking-[-0.01em]"
+                          style={{ color: "var(--theme-surface-muted)" }}
+                        >
+                          Coming soon
+                        </p>
+                      )}
+                    </section>
                   ))}
                 </div>
               </motion.article>

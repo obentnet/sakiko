@@ -55,3 +55,27 @@ body {
 .scrollbar-hidden::-webkit-scrollbar-thumb {
   background: transparent;
 }
+
+v-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 10px;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  background-color: var(--v-chip-bg, var(--theme-chip-bg));
+  color: var(--v-chip-fg, var(--theme-chip-text));
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+v-chip:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}

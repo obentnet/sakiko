@@ -924,6 +924,7 @@ export default function HeroIntro({
                     fill
                     sizes={`${avatarSize}px`}
                     preload
+                    draggable={false}
                     className="object-cover"
                   />
                 </div>
@@ -1277,6 +1278,7 @@ export default function HeroIntro({
                   alt="Avatar"
                   fill
                   sizes={`${avatarSize}px`}
+                  draggable={false}
                   className="object-cover"
                 />
               </motion.div>
