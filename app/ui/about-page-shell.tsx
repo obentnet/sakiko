@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { IoLogoWechat } from "react-icons/io5";
+import { MdEmail } from "react-icons/md";
 import { FaQq } from "react-icons/fa";
 import { skillCategories } from "./about-skill-data";
 import { cardHeight, panelRadius, smoothEase } from "./home-transition-constants";
@@ -157,14 +157,14 @@ export default function AboutPageShell({ links, activity }: AboutPageShellProps)
       external: true,
     },
     {
-      title: "wechat",
-      subtitle: "Guess?",
+      title: "Mail",
+      subtitle: "i@ueg.ee",
       href: "#",
-      iconComponent: IoLogoWechat,
+      iconComponent: MdEmail,
     },
     {
-      title: "qq",
-      subtitle: "1283224552",
+      title: "QQ",
+      subtitle: "Add me.",
       href: "https://qm.qq.com/q/ppdiacSBXi",
       iconComponent: FaQq,
     },
