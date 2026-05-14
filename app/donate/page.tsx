@@ -12,7 +12,7 @@ type SponsorRecord = {
 };
 
 const sponsorRecords: SponsorRecord[] = [
-  // { name: "Kirino", amountLabel: "￥648", note: "请继续保持创作" },
+  { name: "染白.", amountLabel: "￥20", note: "请喝霸王茶姬" },
 ];
 
 const presetAmounts = [5, 50, 100, 648] as const;
